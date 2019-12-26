@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+install_memo() {
+  local install_type=$1
+  local version=$2
+  local install_path=$3
+  local concurrency=$3
+
+  if [ "${install_type}" != "version" ]; then
+    echo "Cannot install specific ref from source, sorry." >&2
+    echo "For a list of available versions, see \`asdf list-all memo\`." >&2
+    exit 1
+  fi
+
+  if [[ ! -x $(command -v go) ]]; then
+    echo "ERROR: go not found" >&2
+    exit 1
+  fi
+
+  local tmp_dir=$(mktemp -d -t memo_XXXXXX)
+
+  GO111MODULE=on GOPATH=${tmp_dir} go get github.com/mattn/memo@v${version}
+  if [[ ! -x ${tmp_dir}/bin/memo ]]; then
+    echo "ERROR: failed to build memo" >&2
+    exit 1
+  fi
+  mkdir -p "${install_path}/bin"
+  cp ${tmp_dir}/bin/memo ${install_path}/bin/memo
+}
+
+install_memo "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH" "$ASDF_CONCURRENCY"
